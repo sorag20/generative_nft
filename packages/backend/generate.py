@@ -1,64 +1,256 @@
-import random
-import os
+
+from config import CONFIG, METADATA
 from PIL import Image
+import pandas as pd
+import numpy as np
+import time
+import os
+import random
+from pandas.core.frame import DataFrame
+from progressbar import progressbar
+import sys
 
-# Set components directory and output directory
-components_directory_path = 'components'
-output_directory_path = 'output'
+import warnings
 
-# Get layers list in components directory
-layers = os.listdir(components_directory_path)
-layers.sort()
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
-# Calculate max patterns 
-max_patterns = 1
-for layer in layers:
-    layer_path = os.path.join(components_directory_path, layer)
-    max_patterns = max_patterns * len(os.listdir(layer_path))
 
-# Set how many files to create
-count = input(f'How many files created? Max {max_patterns}\n')
-count = int(count)
+# Import configuration file
 
-# If larger than max_patterns, re-enter
-while count > max_patterns:
-    count = input(f'Set a value less than Max {max_patterns}\n')
-    count = int(count)
+# Parse the configuration file and make sure it's valid
 
-# Generate images
-id_length = len(str(count - 1))
-img_patterns = []
-n = 0
-while n < count:
-    
-    # Set 1st layer
-    layer_path = os.path.join(components_directory_path, layers[0])
-    files = os.listdir(layer_path)
-    random_file = random.choice(files)
-    file_path = os.path.join(layer_path, random_file)
-    img = Image.open(file_path)
-    img_pattern = random_file.split('.')[0]
+def parse_config():
 
-    # Set 2nd and above layers
-    for layer in layers[1:]:
-        layer_path = os.path.join(components_directory_path, layer)
-        files = os.listdir(layer_path)
-        random_file = random.choice(files)
-        file_path = os.path.join(layer_path, random_file)
-        add_img = Image.open(file_path)
-        img.paste(add_img, add_img)
-        img_pattern = img_pattern + random_file.split('.')[0]
+    # Input traits must be placed in the assets folder. Change this value if you want to name it something else.
+    assets_path = "assets"
 
-    # Check duplicate
-    if img_pattern in img_patterns:
-        continue;
-    # Generate image
+    # Loop through all layers defined in CONFIG
+    for layer in CONFIG:
+
+        # Go into assets/ to look for layer folders
+        layer_path = os.path.join(assets_path, layer["directory"])
+
+        # Get trait array in sorted order
+        traits = sorted(
+            [trait for trait in os.listdir(layer_path) if trait[0] != "."])
+
+        # If layer is not required, add a None to the start of the traits array
+        if not layer["required"]:
+            traits = [None] + traits
+
+        # Generate final rarity weights
+        if layer["rarity_weights"] is None:
+            rarities = [1 for x in traits]
+        elif layer["rarity_weights"] == "random":
+            rarities = [random.random() for x in traits]
+        elif type(layer["rarity_weights"] == "list"):
+            assert len(traits) == len(
+                layer["rarity_weights"]
+            ), "Make sure you have the current number of rarity weights"
+            rarities = layer["rarity_weights"]
+        else:
+            raise ValueError("Rarity weights is invalid")
+
+        rarities = get_weighted_rarities(rarities)
+
+        # Re-assign final values to main CONFIG
+        layer["rarity_weights"] = rarities
+        layer["cum_rarity_weights"] = np.cumsum(rarities)
+        layer["traits"] = traits
+
+
+# Weight rarities and return a numpy array that sums up to 1
+def get_weighted_rarities(arr):
+    return np.array(arr) / sum(arr)
+
+
+# Generate a single image given an array of filepaths representing layers
+def generate_single_image(filepaths, output_filename=None):
+
+    # Treat the first layer as the background
+    bg = Image.open(os.path.join("assets", filepaths[0])).convert('RGBA')
+
+    # Loop through layers 1 to n and stack them on top of another
+    for filepath in filepaths[1:]:
+        if filepath.endswith(".png"):
+            img_clear = Image.new("RGBA", bg.size, (255, 255, 255, 0))
+            img = Image.open(os.path.join("assets", filepath)).convert('RGBA')
+            img_clear.paste(img, (0, 0))
+            bg = Image.alpha_composite(bg, img_clear)
+
+    # Save the final image into desired location
+    if output_filename is not None:
+        bg.save(output_filename)
     else:
-        img_patterns.append(img_pattern)
-        id = str(n).zfill(id_length)
-        img_file_name = id + '_' + img_pattern + '.png'
-        img.save(os.path.join(output_directory_path, img_file_name))
-        n += 1
-        print(f'File{id} has been generated.')
+        # If output filename is not specified, use timestamp to name the image and save it in output/single_images
+        if not os.path.exists(os.path.join("output", "single_images")):
+            os.makedirs(os.path.join("output", "single_images"))
+        bg.save(os.path.join("output", "single_images",
+                str(int(time.time())) + ".png"))
 
-print("Complete!")
+
+# Get total number of distinct possible combinations
+def get_total_combinations() -> int:
+
+    total = 1
+    for layer in CONFIG:
+        total = total * len(layer["traits"])
+    return total
+
+
+# Select an index based on rarity weights
+def select_index(cum_rarities, rand):
+
+    cum_rarities = [0] + list(cum_rarities)
+    for i in range(len(cum_rarities) - 1):
+        if rand >= cum_rarities[i] and rand <= cum_rarities[i + 1]:
+            return i
+
+    # Should not reach here if everything works okay
+    return None
+
+
+def get_link_value(linklist, trait_set):
+    for link in linklist.keys():
+        if link in trait_set:
+            return linklist[link]
+    raise Exception("linklist don't find in trait_set")
+
+
+# Generate a set of traits given rarities
+def generate_trait_set_from_config():
+
+    trait_set = []
+    trait_paths = []
+
+    for layer in CONFIG:
+        # Extract list of traits and cumulative rarity weights
+        traits, cum_rarities = layer["traits"], layer["cum_rarity_weights"]
+
+        # Generate a random number
+        rand_num = random.random()
+
+        # Select an element index based on random number and cumulative rarity weights
+        idx = select_index(cum_rarities, rand_num)
+        try:
+            if layer["link"]:
+                trait_value = get_link_value(layer["link"], trait_set)
+                trait_set.append(trait_value)
+                trait_path = os.path.join(layer["directory"], trait_value)
+                trait_paths.append(trait_path)
+        except KeyError:
+            # Add selected trait to trait set
+            trait_set.append(traits[idx])
+
+            # Add trait path to trait paths if the trait has been selected
+            if traits[idx] is not None:
+                trait_path = os.path.join(layer["directory"], traits[idx])
+                trait_paths.append(trait_path)
+
+    return trait_set, trait_paths
+
+def generate_images(count: int) -> DataFrame:
+    """Generate Images from rarity table"""
+    # Initialize an empty rarity table
+    rarity_table = {}
+    for layer in CONFIG:
+        rarity_table[layer["name"]] = []
+
+    # Define output path to output/edition {edition_num}
+    op_path = os.path.join("output", "images")
+
+    # Will require this to name final images as 000, 001,...
+    zfill_count = len(str(count - 1))
+
+    # Create output directory if it doesn't exist
+    if not os.path.exists(op_path):
+        os.makedirs(op_path)
+
+    # Create the images
+    for n in progressbar(range(count)):
+
+        # Set image name
+        image_name = str(n).zfill(zfill_count) + ".png"
+
+        # Get a random set of valid traits based on rarity weights
+        trait_sets, trait_paths = generate_trait_set_from_config()
+
+        # Generate the actual image
+        generate_single_image(trait_paths, os.path.join(op_path, image_name))
+
+        # Populate the rarity table with metadata of newly created image
+        for idx, trait in enumerate(trait_sets):
+            if trait is not None:
+                rarity_table[CONFIG[idx]["name"]].append(
+                    trait[: -1 * len(".png")])
+            else:
+                rarity_table[CONFIG[idx]["name"]].append("none")
+
+    # Create the final rarity table by removing duplicate creat
+    rarity_table = pd.DataFrame(rarity_table).drop_duplicates()
+    
+
+    img_tb_removed = sorted(list(set(range(count)) - set(rarity_table.index)))
+
+    # Remove duplicate images
+    
+
+    # op_path = os.path.join('output', 'edition ' + str(edition))
+    for i in img_tb_removed:
+        os.remove(os.path.join(op_path, str(i).zfill(zfill_count) + ".png"))
+
+    # Rename images such that it is sequentialluy numbered
+    for idx, img in enumerate(sorted(os.listdir(op_path))):
+        os.rename(
+            os.path.join(op_path, img),
+            os.path.join(op_path, str(idx).zfill(zfill_count) + ".png"),
+        )
+
+    # Modify rarity table to reflect removals
+    rarity_table = rarity_table.reset_index()
+    rarity_table = rarity_table.drop("index", axis=1)
+    return rarity_table
+
+
+def generate_metadata(rarity_table: DataFrame):
+    """Generate Metadata CSV from rarity data csv."""
+
+    meta_list = []
+    meta_index = []
+
+    meta_column = list(METADATA.keys())
+    rarity_column = rarity_table.keys().tolist()
+    meta_column.extend(rarity_column)
+
+    for index, row in rarity_table.iterrows():
+        meta_index.append(str(index))
+
+        listvalue = []
+        for metavalue in METADATA.values():
+            listvalue.append(metavalue.replace("_ID_", str(index)))
+
+        listvalue.extend(row.to_list())
+        meta_list.append(listvalue)
+
+    meta_dataframe = pd.DataFrame(
+        data=meta_list, index=meta_index, columns=meta_column)
+
+    meta_dataframe.to_csv(
+        os.path.join("output", "metadata.csv"),
+        index=False,
+    )
+
+# Main function. Point of entry
+def main():
+    data = sys.stdin.readline()  
+    count=int(data)
+    
+    parse_config()
+    tot_comb = get_total_combinations()
+    rt = generate_images(count)
+    generate_metadata(rt)
+
+    print("generate complete!")
+
+# Run the main function
+main()
