@@ -21,9 +21,9 @@ app.use(bodyParser.json());
 app.post('/generate', async function (req, res) {
   var pyshell = new PythonShell('generate.py');
   pyshell.send(req.body.count);
-  let message = 'error';
+
   pyshell.on('message', function (data) {
-    message = data;
+    let message = data;
     res.send(message);
   });
 });

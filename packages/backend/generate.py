@@ -58,11 +58,9 @@ def parse_config():
         layer["cum_rarity_weights"] = np.cumsum(rarities)
         layer["traits"] = traits
 
-
 # Weight rarities and return a numpy array that sums up to 1
 def get_weighted_rarities(arr):
     return np.array(arr) / sum(arr)
-
 
 # Generate a single image given an array of filepaths representing layers
 def generate_single_image(filepaths, output_filename=None):
@@ -87,7 +85,6 @@ def generate_single_image(filepaths, output_filename=None):
             os.makedirs(os.path.join("output", "single_images"))
         bg.save(os.path.join("output", "single_images",
                 str(int(time.time())) + ".png"))
-
 
 # Get total number of distinct possible combinations
 def get_total_combinations() -> int:
