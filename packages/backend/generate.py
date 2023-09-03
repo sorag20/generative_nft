@@ -14,7 +14,6 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
-
 # Import configuration file
 
 # Parse the configuration file and make sure it's valid
