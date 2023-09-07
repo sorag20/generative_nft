@@ -18,44 +18,44 @@ app.use(
   cors(),
   bodyParser.urlencoded({
     extended: true,
-  }),
-  formidableMiddleware()
+  })
 );
 app.use(bodyParser.json());
 
 app.post('/generate', async function (req, res) {
   var pyshell = new PythonShell('generate.py');
   pyshell.send(req.body.count);
-
   pyshell.on('message', function (data) {
-    let message = data;
-    res.send(message);
+    res.send('success');
   });
 });
 /*
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'assets/1');
+    cb(null, '/Users/ggg/dev/generative_nft/packages/backend/assets/1');
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname);
+    cb(null, 'aa.png');
   },
 });
 
 const upload = multer({
-  dest: './assets/1/',
-});
-*/
+  storage: storage,
+}).any();
 
 app.post('/setImg', async function (req, res) {
-  const request_url = req.body.request_url;
-  console.log(request_url);
-  try {
-    const image = await fetch(request_url);
-    image.body.pipe(fs.createWriteStream('./assets/1/'));
-    res.send('success');
-  } catch (err) {
-    console.error(error);
-    res.send('エラーが発生しました。');
-  }
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading.
+      console.log(err);
+    } else if (err) {
+      // An unknown error occurred when uploading.
+      console.log(err);
+    }
+
+    // Everything went fine.
+  });
+  console.log(req.files);
+  res.send('success');
 });
+*/

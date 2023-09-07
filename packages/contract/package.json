@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "run:script": "npx hardhat run scripts/run.js",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.js --network sepolia",
+    "start": "npx hardhat node"
   },
   "author": "",
   "license": "ISC",

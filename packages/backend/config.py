@@ -2,14 +2,14 @@
 METADATA = {
     "name": "test",
     "description": "generative NFT",
-    "external_url": "https://test/",
+    "image": "ipfs://",
 }
 
 CONFIG = [
     {
-        "id": 1,
-        "name": "1",
-        "directory": "1",
+        "id": "1",
+        "name": "background",
+        "directory": "background",
         "required": True,
         "rarity_weights": [
             1,  
@@ -19,10 +19,10 @@ CONFIG = [
             1, 
         ],
     },
-     {
-        "id": 2,
-        "name": "2",
-        "directory": "2",
+    {
+        "id": "2",
+        "name": "skirt",
+        "directory": "skirt",
         "required": True,
         "rarity_weights": [
             1,  
@@ -33,9 +33,9 @@ CONFIG = [
         ],
     },
        {
-        "id": 3,
-        "name": "3",
-        "directory": "3",
+        "id": "3",
+        "name": "body",
+        "directory": "body",
         "required": True,
         "rarity_weights": [
             1,  
@@ -46,9 +46,9 @@ CONFIG = [
         ],
     },
      {
-        "id": 4,
-        "name": "4",
-        "directory": "4",
+        "id": "4",
+        "name": "cloth",
+        "directory": "cloth",
         "required": True,
         "rarity_weights": [
             1,  
@@ -59,9 +59,9 @@ CONFIG = [
         ],
     },
      {
-        "id": 5,
-        "name": "5",
-        "directory": "5",
+        "id": "5",
+        "name": "crown",
+        "directory": "crown",
         "required": True,
         "rarity_weights": [
             1,  
@@ -72,9 +72,9 @@ CONFIG = [
         ],
     },
     {
-        "id": 6,
-        "name": "6",
-        "directory": "6",
+        "id": "6",
+        "name": "foot",
+        "directory": "foot",
         "required": True,
         "rarity_weights": [
             1,  
@@ -85,9 +85,9 @@ CONFIG = [
         ],
     },
     {
-        "id": 7,
-        "name": "7",
-        "directory": "7",
+        "id": "7",
+        "name": "mouth",
+        "directory": "mouth",
         "required": True,
         "rarity_weights": [
             1,  
@@ -97,10 +97,10 @@ CONFIG = [
             1, 
         ],
     },
-    {
-        "id": 8,
-        "name": "8",
-        "directory": "8",
+         {
+        "id": "8",
+        "name": "beam",
+        "directory": "beam",
         "required": True,
         "rarity_weights": [
             1,  

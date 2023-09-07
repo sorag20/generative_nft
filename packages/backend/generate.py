@@ -220,33 +220,33 @@ def generate_metadata(rarity_table: DataFrame):
 
     for index, row in rarity_table.iterrows():
         meta_index.append(str(index))
-
         listvalue = []
         for metavalue in METADATA.values():
             listvalue.append(metavalue.replace("_ID_", str(index)))
-
         listvalue.extend(row.to_list())
+        
         meta_list.append(listvalue)
-
-    meta_dataframe = pd.DataFrame(
-        data=meta_list, index=meta_index, columns=meta_column)
-
-    meta_dataframe.to_csv(
-        os.path.join("output", "metadata.csv"),
-        index=False,
-    )
+        meta_list[0][2]+=str(index)+".png"
+        
+        meta_dataframe = pd.DataFrame(
+            data=meta_list, index=meta_index, columns=meta_column)
+        meta_dataframe.to_csv(
+            os.path.join("output",str(index)+".csv"),
+            index=False)
+        meta_list=[]
+        meta_index=[]
 
 # Main function. Point of entry
 def main():
     data = sys.stdin.readline()  
     count=int(data)
-    
+    print(data)
     parse_config()
     tot_comb = get_total_combinations()
     rt = generate_images(count)
     generate_metadata(rt)
 
-    print("generate complete!")
+    return "generate complete!"
 
 # Run the main function
 main()
