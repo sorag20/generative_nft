@@ -3,9 +3,12 @@ import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
 import { ChakraProvider, Button, Input, Select } from '@chakra-ui/react';
-
+import { ethers } from 'ethers';
+import GenerativeNFT from './utils/GenerativeNFT.json';
 function App() {
   const [count, setCount] = useState('');
+  const [recipient, setRecipient] = useState('');
+  const [URI, setURI] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const handleSubmit = async () => {
     try {
@@ -50,6 +53,36 @@ function App() {
       });
     } catch (err) {
       console.log(err);
+    }
+  };
+
+  const MintNft = async () => {
+    try {
+      const CONTRACT_ADDRESS: string =
+        process.env.REACT_APP_SEPOLIA_CONTRACT_ADDRESS || '';
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      await provider.send('eth_requestAccounts', []);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+
+      const connectedContract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        GenerativeNFT.abi,
+        signer
+      );
+      const caddress = await connectedContract.getAddress();
+      console.log(caddress);
+
+      console.log('Going to pop wallet now to pay gas...');
+      const nftTxn = await connectedContract.mint(recipient, URI);
+      console.log('Mining...please wait.');
+      await nftTxn.wait();
+
+      console.log(
+        `Mined, see transaction: https://sepolia.etherscan.io/tx/${nftTxn.hash}`
+      );
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -104,7 +137,50 @@ function App() {
           submit
         </Button>
       </form>
+      <label
+        style={{
+          fontSize: '20px',
+          display: 'block',
+          transform: 'translateY(200px)',
+        }}
+      >
+        recipient
+      </label>
+      <Input
+        value={recipient}
+        onChange={(event) => setRecipient(event.target.value)}
+        style={{
+          transform: 'translateY(200px)',
+          display: 'block',
+        }}
+      />
 
+      <label
+        style={{
+          fontSize: '20px',
+          display: 'block',
+          transform: 'translateY(200px)',
+        }}
+      >
+        TokenURI
+      </label>
+      <Input
+        value={URI}
+        onChange={(event) => setURI(event.target.value)}
+        style={{
+          transform: 'translateY(200px)',
+        }}
+      />
+
+      <Button
+        onClick={MintNft}
+        colorScheme="teal"
+        style={{
+          transform: 'translateY(200px)',
+        }}
+      >
+        MINT
+      </Button>
       {/*
       <Select
         value={layer}
