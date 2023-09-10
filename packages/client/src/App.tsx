@@ -7,6 +7,7 @@ import { ethers } from 'ethers';
 import GenerativeNFT from './utils/GenerativeNFT.json';
 function App() {
   const [count, setCount] = useState('');
+  const [layer, setLayer] = useState('');
   const [recipient, setRecipient] = useState('');
   const [URI, setURI] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -38,7 +39,7 @@ function App() {
   const imgSubmit = async () => {
     try {
       const data = new FormData();
-      //data.append('test', 'test');
+      data.append('layer', layer);
       data.append('file', image!, '1589466137456_aFz3CE.png');
 
       console.log(image);
@@ -181,22 +182,20 @@ function App() {
       >
         MINT
       </Button>
-      {/*
       <Select
         value={layer}
         onChange={(event) => setLayer(event.target.value)}
         placeholder="Select option"
       >
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
+        <option value="background">background</option>
+        <option value="beam">beam</option>
+        <option value="body">body</option>
+        <option value="cloth">cloth</option>
+        <option value="crown">crown</option>
+        <option value="foot">foot</option>
+        <option value="mouth">mouth</option>
+        <option value="skirt">skirt</option>
       </Select>
-      */}
     </ChakraProvider>
   );
 }

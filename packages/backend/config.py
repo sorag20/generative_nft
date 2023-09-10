@@ -2,7 +2,7 @@
 METADATA = {
     "name": "test",
     "description": "generative NFT",
-    "image": "ipfs://QmTKcB2mVYpGKhfFobiaqfPWeRXghbPd4j6Y9Z9G7zCtAd/",
+    "image": "ipfs://QmTKcB2mVYpGKhfFobiaqfPWeRXghbPd4j6Y9Z9G7zCtAd",
 }
 
 CONFIG = [

@@ -29,13 +29,12 @@ app.post('/generate', async function (req, res) {
     res.send('success');
   });
 });
-/*
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/Users/ggg/dev/generative_nft/packages/backend/assets/1');
+    cb(null, './assets/' + req.body.layer);
   },
   filename: function (req, file, cb) {
-    cb(null, 'aa.png');
+    cb(null, file.originalname);
   },
 });
 
@@ -46,16 +45,10 @@ const upload = multer({
 app.post('/setImg', async function (req, res) {
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
       console.log(err);
     } else if (err) {
-      // An unknown error occurred when uploading.
       console.log(err);
     }
-
-    // Everything went fine.
   });
-  console.log(req.files);
   res.send('success');
 });
-*/
