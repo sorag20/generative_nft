@@ -3,6 +3,11 @@ import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
 import { ChakraProvider, Button, Input, Select } from '@chakra-ui/react';
+import { Tabs, TabList, TabPanels, Tab, TabPanel } from '@chakra-ui/react';
+import { ArrowUpDownIcon, ArrowUpIcon } from '@chakra-ui/icons';
+import { FcVideoFile, FcUpload, FcLowPriority } from 'react-icons/fc';
+import { AiOutlineUpload } from 'react-icons/ai';
+
 import { ethers } from 'ethers';
 import GenerativeNFT from './utils/GenerativeNFT.json';
 function App() {
@@ -89,113 +94,80 @@ function App() {
 
   return (
     <ChakraProvider>
-      <label
-        style={{
-          fontSize: '20px',
-          display: 'block',
-          transform: 'translate(200px,200px)',
-        }}
-      >
-        生成画像数
-      </label>
-      <Input
-        type="text"
-        value={count}
-        onChange={(event) => setCount(event.target.value)}
-        style={{
-          width: 120,
-          height: 50,
-          transform: 'translate(200px,200px)',
-        }}
-      />
-      <Button
-        onClick={handleSubmit}
-        colorScheme="teal"
-        type="submit"
-        style={{
-          width: 120,
-          height: 55,
-          transform: 'translate(200px,200px)',
-        }}
-      >
-        Generate
-      </Button>
+      <Tabs size="md" align="center" variant="enclosed">
+        <TabList>
+          <Tab>
+            <FcVideoFile />
+            Generate Image
+          </Tab>
+          <Tab>
+            <FcUpload />
+            Upload Layer
+          </Tab>
+          <Tab>
+            <FcLowPriority />
+            Mint NFT
+          </Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel>
+            <label className={'label'}>生成画像数</label>
+            <Input
+              type="text"
+              className={'count'}
+              value={count}
+              onChange={(event) => setCount(event.target.value)}
+            />
+            <Button onClick={handleSubmit} colorScheme="teal" type="submit">
+              Generate
+            </Button>
+          </TabPanel>
+          <TabPanel>
+            <form onSubmit={imgSubmit}>
+              <input
+                type="file"
+                name="file"
+                accept="image/*,.png,.jpg,.jpeg,.gif"
+                onChange={(event) => getImage(event.target)}
+              />
+              <Select
+                value={layer}
+                onChange={(event) => setLayer(event.target.value)}
+                placeholder="Select option"
+              >
+                <option value="background">background</option>
+                <option value="beam">beam</option>
+                <option value="body">body</option>
+                <option value="cloth">cloth</option>
+                <option value="crown">crown</option>
+                <option value="foot">foot</option>
+                <option value="mouth">mouth</option>
+                <option value="skirt">skirt</option>
+              </Select>
+              <Button type="submit" colorScheme="teal">
+                submit
+              </Button>
+            </form>
+          </TabPanel>
+          <TabPanel>
+            <label className={'label'}>recipient</label>
+            <Input
+              value={recipient}
+              onChange={(event) => setRecipient(event.target.value)}
+            />
 
-      <form onSubmit={imgSubmit}>
-        <input
-          type="file"
-          name="file"
-          accept="image/*,.png,.jpg,.jpeg,.gif"
-          onChange={(event) => getImage(event.target)}
-        />
-        <Button
-          type="submit"
-          colorScheme="teal"
-          style={{
-            transform: 'translateX(200px)',
-          }}
-        >
-          submit
-        </Button>
-      </form>
-      <label
-        style={{
-          fontSize: '20px',
-          display: 'block',
-          transform: 'translateY(200px)',
-        }}
-      >
-        recipient
-      </label>
-      <Input
-        value={recipient}
-        onChange={(event) => setRecipient(event.target.value)}
-        style={{
-          transform: 'translateY(200px)',
-          display: 'block',
-        }}
-      />
+            <label className={'label'}>TokenURI</label>
+            <Input
+              value={URI}
+              onChange={(event) => setURI(event.target.value)}
+            />
 
-      <label
-        style={{
-          fontSize: '20px',
-          display: 'block',
-          transform: 'translateY(200px)',
-        }}
-      >
-        TokenURI
-      </label>
-      <Input
-        value={URI}
-        onChange={(event) => setURI(event.target.value)}
-        style={{
-          transform: 'translateY(200px)',
-        }}
-      />
-
-      <Button
-        onClick={MintNft}
-        colorScheme="teal"
-        style={{
-          transform: 'translateY(200px)',
-        }}
-      >
-        MINT
-      </Button>
-      <Select
-        value={layer}
-        onChange={(event) => setLayer(event.target.value)}
-        placeholder="Select option"
-      >
-        <option value="background">background</option>
-        <option value="beam">beam</option>
-        <option value="body">body</option>
-        <option value="cloth">cloth</option>
-        <option value="crown">crown</option>
-        <option value="foot">foot</option>
-        <option value="mouth">mouth</option>
-        <option value="skirt">skirt</option>
-      </Select>
+            <Button onClick={MintNft} colorScheme="teal">
+              MINT
+            </Button>
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </ChakraProvider>
   );
 }
