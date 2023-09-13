@@ -233,6 +233,11 @@ def generate_metadata(rarity_table: DataFrame):
         meta_dataframe.to_csv(
             os.path.join("output",str(index)+".csv"),
             index=False)
+        meta_dataframe.to_json(
+            os.path.join("output",str(index)+".json"),
+            orient="records",
+            lines=True
+            )
         meta_list=[]
         meta_index=[]
 
