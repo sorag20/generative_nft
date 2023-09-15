@@ -1,15 +1,17 @@
 .count {
   width: 120;
   height: 50;
-  transform: 'translate(200px,200px)';
   display: 'block';
 }
 .label {
   font: '20px';
   display: 'block';
-  transform: 'translate(200px,200px)';
   display: 'block';
 }
-.tab {
+.Tabs {
   transform: 'translateY(200px)';
+}
+body {
+  width: 960px;
+  text-align: center;
 }

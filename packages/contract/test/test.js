@@ -12,3 +12,20 @@ describe('Generative NFT', function () {
     expect(await GenerativeNFT.tokenURI(0)).to.equal('test');
   });
 });
+
+describe('Generative Onchain NFT', function () {
+  it('NFT basic test', async function () {
+    const [signer, badSigner] = await ethers.getSigners();
+    const GenerativeOnchainNFTContract = await ethers.deployContract(
+      'GenerativeOnchainNFT'
+    );
+    const GenerativeOnchainNFT =
+      await GenerativeOnchainNFTContract.waitForDeployment();
+
+    expect(await GenerativeOnchainNFT.name()).to.equal(
+      'Generative Onchain NFT'
+    );
+    await GenerativeOnchainNFT.mint(signer.address);
+    expect(await GenerativeOnchainNFT.balanceOf(signer.address)).to.equal(1);
+  });
+});
