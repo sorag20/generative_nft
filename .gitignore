@@ -1,2 +1,8 @@
 node_modules
 .DS_Store
+output_csv
+output_json
+images
+assets
+images 2
+public

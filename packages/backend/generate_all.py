@@ -6,6 +6,7 @@ import numpy as np
 import time
 import os
 import random
+import itertools
 from pandas.core.frame import DataFrame
 from progressbar import progressbar
 import sys
@@ -13,6 +14,8 @@ import sys
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
+
+
 
 def parse_config():
 
@@ -33,6 +36,7 @@ def parse_config():
         elif layer["rarity_weights"] == "random":
             rarities = [random.random() for x in traits]
         elif type(layer["rarity_weights"] == "list"):
+            
             assert len(traits) == len(
                 layer["rarity_weights"]
             ), "Make sure you have the current number of rarity weights"
@@ -63,7 +67,6 @@ def generate_single_image(filepaths, output_filename=None):
     if output_filename is not None:
         bg.save(output_filename)
     else:
-
         if not os.path.exists(os.path.join("images", "single_images")):
             os.makedirs(os.path.join("images", "single_images"))
         bg.save(os.path.join("images", "single_images",
@@ -93,34 +96,30 @@ def get_link_value(linklist, trait_set):
             return linklist[link]
     raise Exception("linklist don't find in trait_set")
 
-
-def generate_trait_set_from_config():
-
-    trait_set = []
-    trait_paths = []
-
+# レイヤーの全パターンを返す
+def generate_all_trait_comb():
+    all_trait=[]
     for layer in CONFIG:
+        traits = layer["traits"]
+        all_trait.append(layer["traits"])
+    all_trait_comb = list(
+    itertools.product(*all_trait)
+)
+    return all_trait_comb
+    
+def generate_all_trait_paths_from_trait_sets(all_trait_sets):
 
-        traits, cum_rarities = layer["traits"], layer["cum_rarity_weights"]
+    all_trait_paths = []
+    for trait_sets in all_trait_sets:
+        trait_paths=[]
+        for idx,layer in enumerate(CONFIG):
+            trait_path = os.path.join(layer["directory"], trait_sets[idx])
+            trait_paths.append(trait_path)
+        all_trait_paths.append(trait_paths)
+        
+    print(all_trait_paths)
 
-        rand_num = random.random()
- 
-        idx = select_index(cum_rarities, rand_num)
-        try:
-            if layer["link"]:
-                trait_value = get_link_value(layer["link"], trait_set)
-                trait_set.append(trait_value)
-                trait_path = os.path.join(layer["directory"], trait_value)
-                trait_paths.append(trait_path)
-        except KeyError:
-      
-            trait_set.append(traits[idx])
-
-       
-            if traits[idx] is not None:
-                trait_path = os.path.join(layer["directory"], traits[idx])
-                trait_paths.append(trait_path)
-    return trait_set, trait_paths
+    return all_trait_paths
 
 def generate_images(count: int) -> DataFrame:
     """Generate Images from rarity table"""
@@ -134,20 +133,12 @@ def generate_images(count: int) -> DataFrame:
     if not os.path.exists(op_path):
         os.makedirs(op_path)
 
-
-    generate_traits_sets=[]
-    n=0
-    while n<count:
+    all_trait_sets=generate_all_trait_comb()
+    all_trait_paths=generate_all_trait_paths_from_trait_sets(all_trait_sets)
+    for idx,trait_sets in enumerate(all_trait_sets):
         
-        image_name = str(n)+ ".png"
-
-        trait_sets, trait_paths = generate_trait_set_from_config()
-        generate_traits_sets.append(trait_sets)
-        generate_traits_sets = list(map(list, set(map(tuple, generate_traits_sets))))
-        
-        if len(generate_traits_sets)==n:
-            continue
-        
+        image_name = str(idx) + ".png"
+        trait_paths=all_trait_paths[idx]
         for idx, trait in enumerate(trait_sets):
             if trait is not None:
                 rarity_table[CONFIG[idx]["name"]].append(
@@ -155,11 +146,9 @@ def generate_images(count: int) -> DataFrame:
             else:
                 rarity_table[CONFIG[idx]["name"]].append("none")
 
-        
         generate_single_image(trait_paths, os.path.join(op_path, image_name))
-        n+=1
     rarity_table = pd.DataFrame(rarity_table)
-    print(rarity_table)
+    
     return rarity_table
 
 
@@ -196,15 +185,12 @@ def generate_metadata(rarity_table: DataFrame):
         meta_list=[]
         meta_index=[]
 
-
 def main():
-    data = sys.stdin.readline()  
-    count=int(data)
-    print(data)
-    parse_config()
-    rt = generate_images(count)
-    generate_metadata(rt)
 
+    parse_config()
+    max_count = get_total_combinations()
+    rt = generate_images(max_count)
+    generate_metadata(rt)
     return "generate complete!"
 
 main()
