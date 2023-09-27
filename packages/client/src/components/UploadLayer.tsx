@@ -12,10 +12,10 @@ export default function UploadLayer() {
   const [layer, setLayer] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<FileList | null>(null);
   const [layerSuccess, setLayerSuccess] = useState('');
 
-  type Input = { file: File; layer: string };
+  type Input = { file: FileList; layer: string };
 
   const {
     register,
@@ -26,15 +26,16 @@ export default function UploadLayer() {
 
   const getImage = async (e: HTMLInputElement) => {
     if (!e.files) return;
-    const img = e.files[0];
+    const img = e.files;
     setImage(img);
-    console.log(image);
   };
   const imgSubmit = async () => {
     try {
       const data = new FormData();
       data.append('layer', layer);
-      data.append('file', image!);
+      for (let i = 0; i < image!.length; i++) {
+        data.append('file', image![i]);
+      }
       setIsLoading(true);
       const res = await fetch('http://localhost:8000/setImg', {
         method: 'POST',
@@ -58,6 +59,7 @@ export default function UploadLayer() {
     margin: '20px 0',
   };
   const select = {
+    display: 'block',
     width: '300px',
   };
   const grid = {
@@ -75,8 +77,8 @@ export default function UploadLayer() {
               required: 'ファイルを指定してください',
             })}
             onChange={(event) => getImage(event.target)}
+            multiple
           />
-          <p style={{ color: 'red' }}>{errors.file?.message}</p>
           <Select
             style={select}
             value={layer}
@@ -86,15 +88,15 @@ export default function UploadLayer() {
             onChange={(event) => setLayer(event.target.value)}
             placeholder="Select Layer"
           >
-            <option value="background">background</option>
-            <option value="beam">beam</option>
-            <option value="body">body</option>
-            <option value="cloth">cloth</option>
-            <option value="crown">crown</option>
-            <option value="foot">foot</option>
-            <option value="mouth">mouth</option>
-            <option value="skirt">skirt</option>
+            <option value="01_background">background</option>
+            <option value="02_template">template</option>
+            <option value="03_chochin">chochin</option>
+            <option value="04_outline">outline</option>
+            <option value="05_kamon">kamon</option>
+            <option value="06_central">central</option>
+            <option value="07_type">type</option>
           </Select>
+          <p style={{ color: 'red' }}>{errors.file?.message}</p>
           <p style={{ color: 'red' }}>{errors.layer?.message}</p>
         </SimpleGrid>
 

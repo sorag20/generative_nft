@@ -25,16 +25,22 @@ app.use(bodyParser.json());
 app.post('/generate', async function (req, res) {
   var pyshell = new PythonShell('generate.py');
   pyshell.send(req.body.count);
-  pyshell.on('message', function (data) {
-    res.send('success');
+  pyshell.on('message', function (data) {});
+  pyshell.end((err, code, signal) => {
+    if (err) {
+      res.status(500).send('server error');
+    }
+    res.status(200).send('success');
   });
 });
 
 app.post('/generate/all', async function (req, res) {
   await PythonShell.run('generate_all.py', null, function (err) {
-    if (err) throw err;
+    if (err) {
+      res.status(500).send('server error');
+    }
   });
-  res.send('success');
+  res.status(200).send('success');
 });
 
 app.post('/saveCID', async function (req, res) {
