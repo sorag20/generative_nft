@@ -74,8 +74,14 @@ export default function MintNFT() {
           value={recipient}
           {...register('recipient', {
             required: 'Mint先アドレスを指定してください',
-            maxLength: 40,
-            minLength: 40,
+            maxLength: {
+              value: 42,
+              message: 'アドレス長の42桁を入力してください',
+            },
+            minLength: {
+              value: 42,
+              message: 'アドレス長の42桁を入力してください',
+            },
           })}
           onChange={(event) => setRecipient(event.target.value)}
         />

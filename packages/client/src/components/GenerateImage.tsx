@@ -89,6 +89,10 @@ export default function GenerateImage() {
           className={'count'}
           {...register('count', {
             required: '生成数を入力してください',
+            pattern: {
+              value: /^([1-9]\d*|0)$/,
+              message: '数値のみ入力してください。',
+            },
           })}
           value={count}
           onChange={(event) => setCount(event.target.value)}
