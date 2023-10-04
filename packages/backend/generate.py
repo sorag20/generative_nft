@@ -159,7 +159,6 @@ def generate_images(count: int) -> DataFrame:
         generate_single_image(trait_paths, os.path.join(op_path, image_name))
         n+=1
     rarity_table = pd.DataFrame(rarity_table)
-    print(rarity_table)
     return rarity_table
 
 
@@ -188,6 +187,7 @@ def generate_metadata(rarity_table: DataFrame):
         meta_dataframe.to_csv(
             os.path.join("output_csv",str(index)+".csv"),
             index=False)
+        print(meta_dataframe)
         meta_dataframe.to_json(
             os.path.join("output_json",str(index)+".json"),
             orient="records",
@@ -200,7 +200,6 @@ def generate_metadata(rarity_table: DataFrame):
 def main():
     data = sys.stdin.readline()  
     count=int(data)
-    print(data)
     parse_config()
     rt = generate_images(count)
     generate_metadata(rt)
