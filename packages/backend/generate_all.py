@@ -1,21 +1,18 @@
 
 from config import CONFIG, METADATA
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import pandas as pd
 import numpy as np
 import time
 import os
+import math
 import random
 import itertools
 from pandas.core.frame import DataFrame
-from progressbar import progressbar
-import sys
 
 import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
-
-
 
 def parse_config():
 
@@ -53,7 +50,7 @@ def parse_config():
 def get_weighted_rarities(arr):
     return np.array(arr) / sum(arr)
 
-def generate_single_image(filepaths, output_filename=None):
+def generate_single_image(filepaths, number, output_filename=None):
 
     bg = Image.open(os.path.join("assets", filepaths[0])).convert('RGBA')
 
@@ -61,6 +58,9 @@ def generate_single_image(filepaths, output_filename=None):
         if filepath.endswith(".png"):
             img_clear = Image.new("RGBA", bg.size, (255, 255, 255, 0))
             img = Image.open(os.path.join("assets", filepath)).convert('RGBA')
+            #レイヤーがtemplateの場合、左上をトリミングする。
+            if(filepath[1] == "2"):
+                img = img.crop((0, 0, 500, 500)) 
             img_clear.paste(img, (0, 0))
             bg = Image.alpha_composite(bg, img_clear)
 
@@ -71,6 +71,21 @@ def generate_single_image(filepaths, output_filename=None):
             os.makedirs(os.path.join("images", "single_images"))
         bg.save(os.path.join("images", "single_images",
                 str(int(time.time())) + ".png"))
+    
+    """シリアルナンバー入力"""
+    newImg = Image.open("images/"+number+".png")
+    draw = ImageDraw.Draw(newImg)
+    font = ImageFont.truetype("/Users/ggg/dev/generative_nft/packages/backend/font/Inter-VariableFont_slnt,wght.ttf", 30)
+    #templateが黒色の場合、黒文字
+    if (filepaths[1][12:17] == '02_01'):
+        draw.text((1350, 20), 'CREW WORD', font=font, fill='#000000')
+        draw.text((1350, 55), '#'+number, font=font, fill='#000000')
+    #templateが白色の場合、白文字
+    if (filepaths[1][12:17] == '02_02'):
+        draw.text((1350, 20), 'CREW WORD', font=font, fill='#FFFFFF')
+        draw.text((1350, 55), '#'+number, font=font, fill='#FFFFFF')
+    
+    newImg.save("images/"+number+".png")
 
 def get_total_combinations() -> int:
 
@@ -132,21 +147,46 @@ def generate_images(count: int) -> DataFrame:
 
     if not os.path.exists(op_path):
         os.makedirs(op_path)
+    
+        #禁止組み合わせの読み込み
+    if os.path.isfile('./prohibited_comb/prohibited_comb.csv'):
+        prohibited_comb_DataFrame = pd.read_csv(
+            './prohibited_comb/prohibited_comb.csv')
+        prohibited_comb = prohibited_comb_DataFrame.values.tolist()
 
     all_trait_sets=generate_all_trait_comb()
     all_trait_paths=generate_all_trait_paths_from_trait_sets(all_trait_sets)
     for idx,trait_sets in enumerate(all_trait_sets):
         
-        image_name = str(idx) + ".png"
+        image_name = str(idx).zfill(6) + ".png"
         trait_paths=all_trait_paths[idx]
+        for_checking_trait_sets = trait_sets
+        for idx,trait_set in enumerate(for_checking_trait_sets):
+            for_checking_trait_sets[idx] = trait_set[: -1 * len(".png")]
+        
         for idx, trait in enumerate(trait_sets):
             if trait is not None:
                 rarity_table[CONFIG[idx]["name"]].append(
                     trait[: -1 * len(".png")])
             else:
                 rarity_table[CONFIG[idx]["name"]].append("none")
-
-        generate_single_image(trait_paths, os.path.join(op_path, image_name))
+        
+        """禁止された組み合わせでないか確認"""
+        for prohibited_layers in prohibited_comb:
+            #禁止組み合わせの要素数を取得
+            prohibited_layer_count = 0 
+            for prohibited_layer in prohibited_layers:
+                if not math.isnan(float(prohibited_layer)):
+                    prohibited_layer_count += 1
+            #禁止組み合わせの要素と一致している数を取得
+            equal_prohibited_count = 0
+            for for_checking_trait_set in for_checking_trait_sets:
+                for prohibited_layer in prohibited_layers:
+                    if for_checking_trait_set == prohibited_layer:
+                        equal_prohibited_count += 1
+        if prohibited_layer_count == equal_prohibited_count:
+            continue
+        generate_single_image(trait_paths, str(idx).zfill(6), os.path.join(op_path, image_name))
     rarity_table = pd.DataFrame(rarity_table)
     
     return rarity_table
