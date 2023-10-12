@@ -12,9 +12,8 @@ CONFIG = [
         "directory": "01_background",
         "required": True,
         "rarity_weights": [
-            1,  
             1,
-
+            1,
         ],
     },
        {
@@ -34,7 +33,6 @@ CONFIG = [
         "required": True,
         "rarity_weights": [
             1,  
-            1,
         ],
     },
                      {
@@ -44,7 +42,6 @@ CONFIG = [
         "required": True,
         "rarity_weights": [
             1,  
-            1, 
         ],
     },
                             {
@@ -54,7 +51,6 @@ CONFIG = [
         "required": True,
         "rarity_weights": [
             1,  
-            1,
         ],
     },
     {
@@ -63,9 +59,7 @@ CONFIG = [
         "directory": "06_central",
         "required": True,
         "rarity_weights": [
-            1,  
-            1, 
-            
+            1,          
         ],
     },
 {
@@ -75,7 +69,6 @@ CONFIG = [
         "required": True,
         "rarity_weights": [
             1,  
-            1,
         ],
     },
 
